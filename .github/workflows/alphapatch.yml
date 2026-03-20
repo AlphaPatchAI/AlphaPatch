@@ -1,0 +1,13 @@
+name: AlphaPatch
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run AlphaPatch
+        run: python bot/main.py --repo ${{ github.repository }} --issue ${{ github.event.issue.number }}

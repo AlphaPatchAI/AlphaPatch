@@ -1,2 +1,118 @@
-# AlphaPatch
-Open Source AI-powered GitHub assistant that analyzes issues and proposes code fixes automatically.
+# 🚀 AlphaPatch
+
+
+>AI-powered GitHub assistant that analyzes issues and proposes code fixes automatically.
+
+AlphaPatch is an open-source developer tool that integrates directly with GitHub workflows to:
+-	🧠 Understand issues using AI
+-	💡 Suggest solutions
+-	🛠️ Generate code patches
+-	🔁 Open pull requests automatically
+
+
+## ✨ Features
+-	📌 Issue Analysis
+-	Classifies issues (bug, feature, question)
+-	Summarizes problem clearly
+-	🤖 AI-Powered Suggestions
+-	Provides detailed explanations
+-	Suggests possible fixes
+-	🔧 Patch Generation (WIP)
+-	Generates code diffs
+-	Prepares pull request drafts
+-	🔄 GitHub Integration
+-	Runs via GitHub Actions
+-	Automatically comments on new issues
+
+
+
+
+## 🧠 How It Works
+1.	A new issue is opened
+2.	GitHub Action is triggered
+3.	AlphaPatch:
+	-	Reads the issue
+	-	Analyzes the repository
+	-	Generates a response
+4.	Bot posts a comment or creates a PR
+
+
+## ⚙️ Installation
+
+1. Clone the repository
+
+    `git clone https://github.com/AlphaPatchAi/AlphaPatch.git
+    cd AlphaPatch`
+
+2. Set up environment variables
+
+    `OPENAI_API_KEY=your_api_key_here
+    GITHUB_TOKEN=your_github_token`
+
+3. Enable GitHub Action
+
+    Create: 
+     
+     `.github/workflows/alphapatch.yml`
+
+
+
+
+## 🧪 Example Workflow
+
+    name: AlphaPatch
+
+    on:
+    issues:
+        types: [opened]
+
+    jobs:
+        analyze:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - name: Run AlphaPatch
+              run: python bot/main.py
+
+
+
+
+## 📌 Roadmap
+
+-	Issue analysis & response
+-	Context-aware repo understanding
+-	Code patch generation
+-	Auto pull request creation
+-	Test validation system
+-	Multi-language support
+
+
+
+## ⚠️ Disclaimer
+
+AlphaPatch does not automatically merge changes.
+
+All generated fixes:
+-	Require human review
+-	May be incorrect or incomplete
+
+
+
+## 🤝 Contributing
+
+We welcome contributions!
+1.	Fork the repo
+2.	Create a feature branch
+3.	Submit a pull request
+
+
+
+## 📜 License
+
+MIT License
+
+
+
+## 🌟 Vision
+
+AlphaPatch aims to become a lightweight, open-source AI assistant for developers — helping teams resolve issues faster without losing control.
