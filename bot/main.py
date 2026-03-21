@@ -11,6 +11,8 @@ from bot.patch.apply import apply_patch_in_temp
 from bot.patch.diff import is_valid_unified_diff, trim_diff
 from bot.patch.generator import generate_patch
 from bot.pr.draft import create_draft_pr_from_diff
+from bot.safety.score import compute_confidence
+from bot.safety.tests import run_tests_in_temp
 
 
 def parse_args():
@@ -57,9 +59,13 @@ def _build_patch_section(repo_path: str, diff_text: str) -> tuple[str, bool]:
     return "**Patch Preview:**\n\n```diff\n" + trimmed + "\n```", True
 
 
-def _maybe_create_draft_pr(repo_path: str, repo: str, diff_text: str, issue_title: str, token: str) -> str:
-    if os.getenv("ENABLE_DRAFT_PR", "0") != "1":
-        return ""
+def _maybe_create_draft_pr(
+    repo_path: str,
+    repo: str,
+    diff_text: str,
+    issue_title: str,
+    token: str,
+) -> str:
     try:
         result = create_draft_pr_from_diff(
             repo_path=repo_path,
@@ -74,6 +80,20 @@ def _maybe_create_draft_pr(repo_path: str, repo: str, diff_text: str, issue_titl
         return "Draft PR created."
     except Exception as exc:
         return f"Draft PR creation failed: {exc}"
+
+
+def _format_test_section(tests_passed: bool | None, output: str) -> str:
+    if tests_passed is None:
+        return "**Tests:** (not run)"
+    status = "passed" if tests_passed else "failed"
+    if not output:
+        return f"**Tests:** {status}"
+    return (
+        f"**Tests:** {status}\n\n"
+        "<details><summary>Test output</summary>\n\n"
+        "```\n" + output + "\n```\n"
+        "</details>"
+    )
 
 
 def main():
@@ -92,9 +112,42 @@ def main():
     diff_text = generate_patch(issue, result["context_files"], provider)
     patch_section, patch_ok = _build_patch_section(repo_path, diff_text)
 
+    tests_passed = None
+    tests_output = ""
+    if patch_ok and config.test_command:
+        tests_passed, tests_output = run_tests_in_temp(
+            repo_path,
+            diff_text,
+            config.test_command,
+            config.test_timeout,
+        )
+
+    confidence_score, confidence_level = compute_confidence(diff_text, patch_ok, tests_passed)
+    test_section = _format_test_section(tests_passed, tests_output)
+
     pr_note = ""
-    if patch_ok:
-        pr_note = _maybe_create_draft_pr(repo_path, args.repo, diff_text, issue.title, config.github_token)
+    if patch_ok and config.enable_draft_pr:
+        if tests_passed is False:
+            pr_note = "Draft PR skipped because tests failed."
+        else:
+            pr_note = _maybe_create_draft_pr(
+                repo_path,
+                args.repo,
+                diff_text,
+                issue.title,
+                config.github_token,
+            )
+
+    label_note = ""
+    if config.enable_labels:
+        labels = [
+            f"alphapatch:{result['classification']}",
+            f"alphapatch:confidence-{confidence_level}",
+        ]
+        try:
+            gh.add_labels(args.repo, issue_number, labels)
+        except Exception as exc:
+            label_note = f"Labeling failed: {exc}"
 
     body = (
         "AlphaPatch response:\n\n"
@@ -102,9 +155,13 @@ def main():
         f"**Summary:** {result['summary']}\n\n"
         f"{result['response']}\n\n"
         f"{patch_section}\n\n"
+        f"**Confidence:** {confidence_score}/100 ({confidence_level})\n\n"
+        f"{test_section}\n\n"
     )
     if pr_note:
         body += f"**PR:** {pr_note}\n\n"
+    if label_note:
+        body += f"**Labels:** {label_note}\n\n"
     body += "_To change the LLM provider, set `LLM_PROVIDER`._"
 
     gh.create_comment(args.repo, issue_number, body)

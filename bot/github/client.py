@@ -41,3 +41,9 @@ class GitHubClient:
     def create_comment(self, repo: str, issue_number: int, body: str) -> None:
         url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
         self._request_json("POST", url, {"body": body})
+
+    def add_labels(self, repo: str, issue_number: int, labels: list[str]) -> None:
+        if not labels:
+            return
+        url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/labels"
+        self._request_json("POST", url, {"labels": labels})
