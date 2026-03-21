@@ -1,3 +1,3 @@
-from bot.llm.providers import EchoProvider, OpenAIProvider
+from bot.llm.providers import EchoProvider, GeminiProvider, OpenAIProvider
 
-__all__ = ["OpenAIProvider", "EchoProvider"]
+__all__ = ["OpenAIProvider", "GeminiProvider", "EchoProvider"]

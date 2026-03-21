@@ -6,7 +6,7 @@ import re
 from bot.analysis.analyzer import analyze_issue
 from bot.config import load_config
 from bot.github.client import GitHubClient
-from bot.llm import EchoProvider, OpenAIProvider
+from bot.llm import EchoProvider, GeminiProvider, OpenAIProvider
 from bot.patch.apply import apply_patch_in_temp
 from bot.patch.diff import is_valid_unified_diff, trim_diff
 from bot.patch.generator import generate_patch
@@ -38,6 +38,12 @@ def _select_provider(config):
             api_key=config.openai_api_key or "",
             model=config.openai_model or "",
             base_url=config.openai_base_url,
+        )
+    if provider == "gemini":
+        return GeminiProvider(
+            api_key=config.gemini_api_key or "",
+            model=config.gemini_model or "",
+            base_url=config.gemini_base_url,
         )
     if provider == "echo":
         return EchoProvider()

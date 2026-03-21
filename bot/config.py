@@ -9,6 +9,9 @@ class Config:
     openai_api_key: str | None
     openai_model: str | None
     openai_base_url: str
+    gemini_api_key: str | None
+    gemini_model: str | None
+    gemini_base_url: str
     test_command: str
     test_timeout: int
     enable_labels: bool
@@ -21,6 +24,9 @@ def load_config() -> Config:
     openai_api_key = os.getenv("OPENAI_API_KEY")
     openai_model = os.getenv("OPENAI_MODEL")
     openai_base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1/responses")
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    gemini_model = os.getenv("GEMINI_MODEL")
+    gemini_base_url = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/models")
     test_command = os.getenv("TEST_COMMAND", "").strip()
     test_timeout = int(os.getenv("TEST_TIMEOUT", "600"))
     enable_labels = os.getenv("ENABLE_LABELS", "0") == "1"
@@ -32,6 +38,9 @@ def load_config() -> Config:
         openai_api_key=openai_api_key,
         openai_model=openai_model,
         openai_base_url=openai_base_url,
+        gemini_api_key=gemini_api_key,
+        gemini_model=gemini_model,
+        gemini_base_url=gemini_base_url,
         test_command=test_command,
         test_timeout=test_timeout,
         enable_labels=enable_labels,
