@@ -19,5 +19,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_PROVIDER: gemini
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_MODEL: gemini-2.5-flash
+          GEMINI_MODEL: gemini-2.5-flash
         run: python -m bot.main --repo ${{ github.repository }} --issue ${{ github.event.issue.number }}
