@@ -50,19 +50,23 @@ def _select_provider(config):
     raise ValueError(f"Unsupported LLM_PROVIDER: {config.llm_provider}")
 
 
-def _build_patch_section(repo_path: str, diff_text: str) -> tuple[str, bool]:
+def _build_patch_section(repo_path: str, diff_text: str) -> tuple[str, bool, str]:
     if not diff_text.strip():
-        return "**Patch Preview:** (no patch generated)", False
+        return "**Patch Preview:** (no patch generated)", False, "empty diff"
 
     if not is_valid_unified_diff(diff_text):
-        return "**Patch Preview:** (model did not return a valid unified diff)", False
+        return "**Patch Preview:** (model did not return a valid unified diff)", False, "invalid diff"
 
     applied, reason = apply_patch_in_temp(repo_path, diff_text)
     if not applied:
-        return f"**Patch Preview:** (diff failed to apply in temp checkout: {reason})", False
+        return (
+            f"**Patch Preview:** (diff failed to apply in temp checkout: {reason})",
+            False,
+            f"apply failed: {reason}",
+        )
 
     trimmed = trim_diff(diff_text)
-    return "**Patch Preview:**\n\n```diff\n" + trimmed + "\n```", True
+    return "**Patch Preview:**\n\n```diff\n" + trimmed + "\n```", True, ""
 
 
 def _maybe_create_draft_pr(
@@ -116,7 +120,13 @@ def main():
     result = analyze_issue(issue, provider, repo_path)
 
     diff_text = generate_patch(issue, result["context_files"], provider)
-    patch_section, patch_ok = _build_patch_section(repo_path, diff_text)
+    patch_section, patch_ok, patch_reason = _build_patch_section(repo_path, diff_text)
+    attempt = 1
+    while not patch_ok and attempt < config.patch_retry_attempts:
+        feedback = f"Attempt {attempt} failed: {patch_reason}"
+        diff_text = generate_patch(issue, result["context_files"], provider, feedback=feedback)
+        patch_section, patch_ok, patch_reason = _build_patch_section(repo_path, diff_text)
+        attempt += 1
 
     tests_passed = None
     tests_output = ""
@@ -158,6 +168,7 @@ def main():
     body = (
         "AlphaPatch response:\n\n"
         f"**Classification:** {result['classification']}\n"
+        f"**Language:** {result['language']}\n"
         f"**Summary:** {result['summary']}\n\n"
         f"{result['response']}\n\n"
         f"{patch_section}\n\n"

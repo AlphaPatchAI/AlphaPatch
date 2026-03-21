@@ -16,6 +16,7 @@ class Config:
     test_timeout: int
     enable_labels: bool
     enable_draft_pr: bool
+    patch_retry_attempts: int
 
 
 def load_config() -> Config:
@@ -30,7 +31,8 @@ def load_config() -> Config:
     test_command = os.getenv("TEST_COMMAND", "").strip()
     test_timeout = int(os.getenv("TEST_TIMEOUT", "600"))
     enable_labels = os.getenv("ENABLE_LABELS", "0") == "1"
-    enable_draft_pr = os.getenv("ENABLE_DRAFT_PR", "0") == "1"
+    enable_draft_pr = os.getenv("ENABLE_DRAFT_PR", "1") == "1"
+    patch_retry_attempts = int(os.getenv("PATCH_RETRY_ATTEMPTS", "2"))
 
     return Config(
         github_token=github_token,
@@ -45,4 +47,5 @@ def load_config() -> Config:
         test_timeout=test_timeout,
         enable_labels=enable_labels,
         enable_draft_pr=enable_draft_pr,
+        patch_retry_attempts=patch_retry_attempts,
     )

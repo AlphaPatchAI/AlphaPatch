@@ -20,11 +20,18 @@ def _format_context(context_files) -> str:
     return "\n\n".join(blocks)
 
 
-def generate_patch(issue: Issue, context_files, provider: LLMProvider) -> str:
+def generate_patch(
+    issue: Issue,
+    context_files,
+    provider: LLMProvider,
+    feedback: str | None = None,
+) -> str:
     prompt_template = _load_prompt_template()
     prompt = prompt_template.format(
         title=issue.title,
         body=issue.body or "",
         context=_format_context(context_files),
     )
+    if feedback:
+        prompt += f"\n\nPrevious attempt feedback:\n{feedback}\n"
     return provider.generate(prompt)
