@@ -1,6 +1,7 @@
 import subprocess
 import time
 from dataclasses import dataclass
+import os
 
 from bot.github.github_client import GitHubPRClient
 
@@ -34,6 +35,27 @@ def _current_branch(repo_path: str) -> str:
     return result.stdout.strip()
 
 
+def _ensure_git_identity(repo_path: str) -> None:
+    name = (
+        os.getenv("GIT_AUTHOR_NAME")
+        or os.getenv("GIT_COMMITTER_NAME")
+        or os.getenv("GITHUB_ACTOR")
+        or "AlphaPatch Bot"
+    )
+    email = (
+        os.getenv("GIT_AUTHOR_EMAIL")
+        or os.getenv("GIT_COMMITTER_EMAIL")
+        or (
+            f"{os.getenv('GITHUB_ACTOR')}@users.noreply.github.com"
+            if os.getenv("GITHUB_ACTOR")
+            else None
+        )
+        or "alphapatch-bot@users.noreply.github.com"
+    )
+    _run_git(["git", "config", "user.name", name], repo_path)
+    _run_git(["git", "config", "user.email", email], repo_path)
+
+
 def _push_branch(repo_path: str, repo: str, branch: str, token: str) -> None:
     remote_url = f"https://x-access-token:{token}@github.com/{repo}.git"
     push = _run_git(["git", "push", remote_url, branch], repo_path)
@@ -60,6 +82,8 @@ def create_draft_pr_from_diff(
         checkout = _run_git(["git", "checkout", "-b", branch], repo_path)
         if checkout.returncode != 0:
             raise RuntimeError(checkout.stderr.strip() or "git checkout -b failed")
+
+        _ensure_git_identity(repo_path)
 
         apply = _run_git(["git", "apply", "-"], repo_path, input_text=diff_text)
         if apply.returncode != 0:
