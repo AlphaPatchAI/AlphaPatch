@@ -39,21 +39,17 @@ AlphaPatch is an open-source developer tool that integrates directly with GitHub
 
 ## ⚙️ Installation
 
-1. Clone the repository
+To add AlphaPatch to **your repository**, use the integration guide and workflow template:
 
-    `git clone https://github.com/AlphaPatchAi/AlphaPatch.git
-    cd AlphaPatch`
+1. Copy AlphaPatch into your repo (or vendor it).
+2. Run `scripts/install.sh` to create `.github/workflows/alphapatch.yml`.
+3. Add required secrets (`GEMINI_API_KEY`, `GEMINI_MODEL`).
+4. Open a new issue to trigger AlphaPatch.
 
-2. Set up environment variables
 
-    `OPENAI_API_KEY=your_api_key_here
-    GITHUB_TOKEN=your_github_token`
+## ⚡ Quickstart
 
-3. Enable GitHub Action
-
-    Create: 
-     
-     `.github/workflows/alphapatch.yml`
+See `docs/integration.md` for a step-by-step setup, required secrets, and permissions.
 
 
 

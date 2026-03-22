@@ -49,3 +49,24 @@ def load_config() -> Config:
         enable_draft_pr=enable_draft_pr,
         patch_retry_attempts=patch_retry_attempts,
     )
+
+
+def validate_config(config: Config) -> None:
+    missing: list[str] = []
+    if not config.github_token:
+        missing.append("GITHUB_TOKEN")
+
+    provider = config.llm_provider.lower()
+    if provider == "openai":
+        if not config.openai_api_key:
+            missing.append("OPENAI_API_KEY")
+        if not config.openai_model:
+            missing.append("OPENAI_MODEL")
+    elif provider == "gemini":
+        if not config.gemini_api_key:
+            missing.append("GEMINI_API_KEY")
+        if not config.gemini_model:
+            missing.append("GEMINI_MODEL")
+
+    if missing:
+        raise ValueError("Missing required env vars: " + ", ".join(missing))

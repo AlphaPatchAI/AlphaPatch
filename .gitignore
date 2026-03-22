@@ -1,2 +1,8 @@
 ROADMAP.md
 *.VSCodeCounter
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.venv/

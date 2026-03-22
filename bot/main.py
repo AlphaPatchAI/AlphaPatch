@@ -4,7 +4,7 @@ import os
 import re
 
 from bot.analysis.analyzer import analyze_issue
-from bot.config import load_config
+from bot.config import load_config, validate_config
 from bot.github.client import GitHubClient
 from bot.llm import EchoProvider, GeminiProvider, OpenAIProvider
 from bot.patch.apply import apply_patch_in_temp
@@ -111,6 +111,7 @@ def main():
     issue_number = _parse_issue_number(args.issue)
 
     config = load_config()
+    validate_config(config)
     gh = GitHubClient(config.github_token)
 
     issue = gh.get_issue(args.repo, issue_number)
