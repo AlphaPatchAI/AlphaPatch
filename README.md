@@ -1,5 +1,7 @@
 # 🚀 AlphaPatch
 
+![logo](/assets/images/logo.png)
+
 
 >AI-powered GitHub assistant that analyzes issues and proposes code fixes automatically.
 
