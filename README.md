@@ -36,6 +36,8 @@ AlphaPatch is an open-source developer tool that integrates directly with GitHub
 	-	Generates a response
 4.	Bot posts a comment or creates a PR
 
+![Demo1](/assets/images/demo1.png)
+![Demo2](/assets/images/demo2.png)
 
 ## ⚙️ Installation
 
