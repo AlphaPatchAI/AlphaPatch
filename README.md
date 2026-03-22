@@ -1,6 +1,6 @@
 # 🚀 AlphaPatch
 
-![logo](/assets/images/logo.png)
+<img src="/assets/images/logo.png" width="200" height="200">
 
 
 >AI-powered GitHub assistant that analyzes issues and proposes code fixes automatically.
