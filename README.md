@@ -50,6 +50,7 @@ To add AlphaPatch to **your repository**, use the integration guide and workflow
 ## ⚡ Quickstart
 
 See `docs/integration.md` for a step-by-step setup, required secrets, and permissions.
+You can also customize workflow triggers there (issue comments, manual runs, schedules).
 
 
 

@@ -37,6 +37,13 @@ If you use a different provider, set the corresponding secrets and update the wo
 - `TEST_COMMAND` (e.g. `pytest -q`)
 - `TEST_TIMEOUT` (seconds, default `600`)
 
+## Optional Triggers
+You can modify the workflow triggers in `.github/workflows/alphapatch.yml`:
+- `issues` (default): runs when a new issue is opened.
+- `issue_comment`: run when a comment is added to an issue.
+- `workflow_dispatch`: manual runs with an input `issue_number`.
+- `schedule`: time-based runs; set repo variable `ALPHAPATCH_ISSUE_NUMBER`.
+
 ## Verify
 1. Open a new issue with a clear change request.
 2. Watch the Actions log and check for an AlphaPatch comment.

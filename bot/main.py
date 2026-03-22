@@ -13,6 +13,12 @@ from bot.patch.generator import generate_patch
 from bot.pr.draft import create_draft_pr_from_diff
 from bot.safety.score import compute_confidence
 from bot.safety.tests import run_tests_in_temp
+from bot.plugins.registry import (
+    apply_after_analysis,
+    apply_after_patch,
+    apply_after_response,
+    load_plugins,
+)
 
 
 def parse_args():
@@ -113,14 +119,19 @@ def main():
     config = load_config()
     validate_config(config)
     gh = GitHubClient(config.github_token)
+    plugins = load_plugins(config.plugin_dir) if config.plugins_enabled else []
 
     issue = gh.get_issue(args.repo, issue_number)
 
     provider = _select_provider(config)
     repo_path = os.getenv("GITHUB_WORKSPACE", os.getcwd())
     result = analyze_issue(issue, provider, repo_path)
+    if plugins:
+        result = apply_after_analysis(plugins, result)
 
     diff_text = generate_patch(issue, result["context_files"], provider)
+    if plugins:
+        diff_text = apply_after_patch(plugins, diff_text)
     patch_section, patch_ok, patch_reason = _build_patch_section(repo_path, diff_text)
     attempt = 1
     while not patch_ok and attempt < config.patch_retry_attempts:
@@ -166,12 +177,16 @@ def main():
         except Exception as exc:
             label_note = f"Labeling failed: {exc}"
 
+    response_text = result["response"]
+    if plugins:
+        response_text = apply_after_response(plugins, response_text)
+
     body = (
         "AlphaPatch response:\n\n"
         f"**Classification:** {result['classification']}\n"
         f"**Language:** {result['language']}\n"
         f"**Summary:** {result['summary']}\n\n"
-        f"{result['response']}\n\n"
+        f"{response_text}\n\n"
         f"{patch_section}\n\n"
         f"**Confidence:** {confidence_score}/100 ({confidence_level})\n\n"
         f"{test_section}\n\n"

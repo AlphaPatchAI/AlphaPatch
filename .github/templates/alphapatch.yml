@@ -3,6 +3,19 @@ name: AlphaPatch
 on:
   issues:
     types: [opened]
+  # Uncomment to allow runs on new issue comments
+  # issue_comment:
+  #   types: [created]
+  # Uncomment for manual runs with an issue number input
+  # workflow_dispatch:
+  #   inputs:
+  #     issue_number:
+  #       description: "Issue number to analyze"
+  #       required: true
+  #       type: string
+  # Uncomment for scheduled runs (set a repo variable ALPHAPATCH_ISSUE_NUMBER)
+  # schedule:
+  #   - cron: "0 9 * * 1"
 
 permissions:
   issues: write
@@ -28,4 +41,4 @@ jobs:
           GIT_AUTHOR_EMAIL: alphapatch-bot@users.noreply.github.com
           GIT_COMMITTER_NAME: AlphaPatch Bot
           GIT_COMMITTER_EMAIL: alphapatch-bot@users.noreply.github.com
-        run: python -m bot.main --repo ${{ github.repository }} --issue ${{ github.event.issue.number }}
+        run: python -m bot.main --repo ${{ github.repository }} --issue ${{ inputs.issue_number || github.event.issue.number || vars.ALPHAPATCH_ISSUE_NUMBER }}
