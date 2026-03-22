@@ -63,13 +63,32 @@ You can also customize workflow triggers there (issue comments, manual runs, sch
     issues:
         types: [opened]
 
+    permissions:
+    issues: write
+    contents: write
+    pull-requests: write
+
     jobs:
-        analyze:
+    analyze:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - name: Run AlphaPatch
-              run: python bot/main.py
+        - uses: actions/checkout@v4
+        - name: Run AlphaPatch
+            env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            LLM_PROVIDER: gemini
+            GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+            GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+            ENABLE_DRAFT_PR: "1"
+            ENABLE_LABELS: "1"
+            TEST_COMMAND: ""
+            TEST_TIMEOUT: "600"
+            GIT_AUTHOR_NAME: AlphaPatch Bot
+            GIT_AUTHOR_EMAIL: alphapatch-bot@users.noreply.github.com
+            GIT_COMMITTER_NAME: AlphaPatch Bot
+            GIT_COMMITTER_EMAIL: alphapatch-bot@users.noreply.github.com
+            run: python -m bot.main --repo ${{ github.repository }} --issue ${{ inputs.issue_number || github.event.issue.number || vars.ALPHAPATCH_ISSUE_NUMBER }}
+
 
 
 
