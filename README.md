@@ -19,7 +19,7 @@ AlphaPatch is an open-source developer tool that integrates directly with GitHub
 -	🤖 AI-Powered Suggestions
 -	Provides detailed explanations
 -	Suggests possible fixes
--	🔧 Patch Generation (WIP)
+-	🔧 Patch Generation
 -	Generates code diffs
 -	Prepares pull request drafts
 -	🔄 GitHub Integration
@@ -55,6 +55,14 @@ To add AlphaPatch to **your repository**, use the integration guide and workflow
 
 See `docs/integration.md` for a step-by-step setup, required secrets, and permissions.
 You can also customize workflow triggers there (issue comments, manual runs, schedules).
+
+## ✅ Why AlphaPatch (vs. other tools)
+
+- **Provider-neutral:** bring your own LLM (Gemini, OpenAI, etc.), your locally hosted LLM.
+- **Open-core and self-hostable:** no vendor lock-in, run it in your own CI.
+- **Transparent automation:** prompts and diff outputs are visible and reviewable.
+- **Developer control:** safety gates, tests before PRs, labels,  policy hooks, control over integration.
+- **Extensible by design:** plugin system for org-specific behavior without forks. 
 
 
 

@@ -41,6 +41,7 @@ If you use a different provider, set the corresponding secrets and update the wo
 You can modify the workflow triggers in `.github/workflows/alphapatch.yml`:
 - `issues` (default): runs when a new issue is opened.
 - `issue_comment`: run when a comment is added to an issue.
+- `pull_request`: run when a PR is opened or updated.
 - `workflow_dispatch`: manual runs with an input `issue_number`.
 - `schedule`: time-based runs; set repo variable `ALPHAPATCH_ISSUE_NUMBER`.
 

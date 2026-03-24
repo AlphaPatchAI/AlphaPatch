@@ -3,6 +3,9 @@ name: AlphaPatch
 on:
   issues:
     types: [opened]
+  # Uncomment to run on pull requests (opened/reopened/synchronize)
+  # pull_request:
+  #   types: [opened, reopened, synchronize]
   # Uncomment to allow runs on new issue comments
   # issue_comment:
   #   types: [created]
@@ -41,4 +44,4 @@ jobs:
           GIT_AUTHOR_EMAIL: alphapatch-bot@users.noreply.github.com
           GIT_COMMITTER_NAME: AlphaPatch Bot
           GIT_COMMITTER_EMAIL: alphapatch-bot@users.noreply.github.com
-        run: python -m bot.main --repo ${{ github.repository }} --issue ${{ inputs.issue_number || github.event.issue.number || vars.ALPHAPATCH_ISSUE_NUMBER }}
+        run: python -m bot.main --repo ${{ github.repository }} --issue ${{ inputs.issue_number || github.event.issue.number || github.event.pull_request.number || vars.ALPHAPATCH_ISSUE_NUMBER }}

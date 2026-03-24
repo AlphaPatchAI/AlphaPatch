@@ -2,6 +2,7 @@
 import argparse
 import os
 import re
+import json
 
 from bot.analysis.analyzer import analyze_issue
 from bot.config import load_config, validate_config
@@ -23,8 +24,9 @@ from bot.plugins.registry import (
 
 def parse_args():
     parser = argparse.ArgumentParser(description="AlphaPatch bot entry point")
-    parser.add_argument("--repo", required=True, help="GitHub repository in owner/name form")
-    parser.add_argument("--issue", required=True, help="Issue number or URL")
+    parser.add_argument("--repo", required=False, help="GitHub repository in owner/name form")
+    parser.add_argument("--issue", required=False, help="Issue number or URL")
+    parser.add_argument("--event", required=False, help="Path to a GitHub event payload JSON")
     return parser.parse_args()
 
 
@@ -35,6 +37,44 @@ def _parse_issue_number(value: str) -> int:
     if match:
         return int(match.group(1))
     raise ValueError("--issue must be a number or issue URL")
+
+
+def _load_event_payload(path: str | None) -> dict | None:
+    if not path:
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    except OSError:
+        return None
+
+
+def _extract_issue_number_from_event(payload: dict | None) -> int | None:
+    if not payload:
+        return None
+    if "issue" in payload and payload["issue"]:
+        return payload["issue"].get("number")
+    if "pull_request" in payload and payload["pull_request"]:
+        return payload["pull_request"].get("number")
+    return None
+
+
+def _extract_comment_from_event(payload: dict | None) -> str | None:
+    if not payload:
+        return None
+    comment = payload.get("comment") or {}
+    body = comment.get("body")
+    if not body:
+        return None
+    author = (comment.get("user") or {}).get("login") or "unknown"
+    return f"Comment by {author}:\n{body}"
+
+
+def _resolve_repo(args_repo: str | None) -> str:
+    repo = args_repo or os.getenv("GITHUB_REPOSITORY")
+    if not repo:
+        raise ValueError("--repo is required (or set GITHUB_REPOSITORY)")
+    return repo
 
 
 def _select_provider(config):
@@ -114,14 +154,31 @@ def _format_test_section(tests_passed: bool | None, output: str) -> str:
 
 def main():
     args = parse_args()
-    issue_number = _parse_issue_number(args.issue)
+    payload = _load_event_payload(args.event or os.getenv("GITHUB_EVENT_PATH"))
+    issue_number = None
+    if args.issue:
+        issue_number = _parse_issue_number(args.issue)
+    else:
+        issue_number = _extract_issue_number_from_event(payload)
+    if issue_number is None:
+        raise ValueError("Issue number is required (--issue or event payload)")
 
     config = load_config()
     validate_config(config)
     gh = GitHubClient(config.github_token)
     plugins = load_plugins(config.plugin_dir) if config.plugins_enabled else []
 
-    issue = gh.get_issue(args.repo, issue_number)
+    repo = _resolve_repo(args.repo)
+    issue = gh.get_issue(repo, issue_number)
+    comment_context = _extract_comment_from_event(payload)
+    if comment_context:
+        issue = issue.__class__(
+            number=issue.number,
+            title=issue.title,
+            body=f"{issue.body}\n\n---\n{comment_context}",
+            url=issue.url,
+            author=issue.author,
+        )
 
     provider = _select_provider(config)
     repo_path = os.getenv("GITHUB_WORKSPACE", os.getcwd())
@@ -160,7 +217,7 @@ def main():
         else:
             pr_note = _maybe_create_draft_pr(
                 repo_path,
-                args.repo,
+                repo,
                 diff_text,
                 issue.title,
                 config.github_token,
@@ -173,7 +230,7 @@ def main():
             f"alphapatch:confidence-{confidence_level}",
         ]
         try:
-            gh.add_labels(args.repo, issue_number, labels)
+            gh.add_labels(repo, issue_number, labels)
         except Exception as exc:
             label_note = f"Labeling failed: {exc}"
 
@@ -197,7 +254,7 @@ def main():
         body += f"**Labels:** {label_note}\n\n"
     body += "_To change the LLM provider, set `LLM_PROVIDER`._"
 
-    gh.create_comment(args.repo, issue_number, body)
+    gh.create_comment(repo, issue_number, body)
 
 
 if __name__ == "__main__":
